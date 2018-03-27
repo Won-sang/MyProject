@@ -36,7 +36,6 @@
          u_int Option_Padding;
 
      }IPHeader;
-#define IP_HL(IH)               (((IH)->HeaderLength) & 0x0f)
 
      typedef struct TCPHeader
      {
@@ -45,7 +44,6 @@
          u_int seqnum;
          u_int acknum;
          u_char th_off;
-         #define TH_OFF(TCP)      (((TCP)->th_off & 0xf0) >> 4)
          u_char flags;
          u_short win;
          u_short crc;
@@ -53,8 +51,6 @@
      }TCPHeader;
 
      const char *payload;                    /* Packet payload */
-     int size_ip;
-     int size_tcp;
      int size_payload;
 
     pcap_t *handle;			/* Session handle */
@@ -96,7 +92,6 @@
     printf("Ethernet Header\n");
     printf("Dst Mac Address : %02x-%02x-%02x-%02x-%02x-%02x\n", EH->src[0], EH->src[1], EH->src[2], EH->src[3], EH->src[4], EH->src[5]);
     printf("Src Mac Address : %02x-%02x-%02x-%02x-%02x-%02x\n", EH->des[0], EH->des[1], EH->des[2], EH->des[3], EH->des[4], EH->des[5]);
-    printf("%x\n", type);
 
     if (type == 0x0800)
     {
@@ -112,9 +107,6 @@
             printf("Src Port : %d\n", ntohs(TCP-> sport));
             printf("Dst Port : %d\n", ntohs(TCP-> dport));
             printf("TCP len : %d\n", TCP->th_off*4);
-
-           // payload = (u_char *)(packet+14+(IH->HeaderLength * 4)+(TCP-> th_off * 4));
-            //printf("payload : %d\n", payload);
 
             size_payload = ntohs(IH-> TotalLength*4) - ((IH->HeaderLength*4)+(TCP-> th_off*4));
 
