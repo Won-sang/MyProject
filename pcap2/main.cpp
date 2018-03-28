@@ -44,13 +44,14 @@
          u_int seqnum;
          u_int acknum;
          u_char th_off;
+#define TH_OFF(TCP)      (((TCP)->th_off & 0xf0) >> 4)
          u_char flags;
          u_short win;
          u_short crc;
          u_short urgptr;
      }TCPHeader;
 
-     const char *payload;                    /* Packet payload */
+     const u_char *payload;                    /* Packet payload */
      int size_payload;
 
     pcap_t *handle;			/* Session handle */
@@ -96,22 +97,35 @@
     if (type == 0x0800)
     {
         IPHeader *IH = (IPHeader*)(packet + 14);
-        printf("IP Header\n");
+        printf("\nIP Header\n");
         printf("Src IP Address : %d.%d.%d.%d\n", IH->SenderAddress.ip1, IH->SenderAddress.ip2, IH->SenderAddress.ip3, IH->SenderAddress.ip4);
         printf("Dst IP Address : %d.%d.%d.%d\n", IH->DestinationAddress.ip1, IH->DestinationAddress.ip2, IH->DestinationAddress.ip3, IH->DestinationAddress.ip4);
-        printf("Ip len : %d\n", IH->HeaderLength*4);
+        printf("Ip Header len : %d\n", (IH->HeaderLength)*4);
         if (IH->Protocol == 6)
         {
             TCPHeader *TCP = (TCPHeader*) (packet + 14 + (IH->HeaderLength * 4));
-            printf("TCP Protocol\n");
+            printf("\nTCP Protocol\n");
             printf("Src Port : %d\n", ntohs(TCP-> sport));
             printf("Dst Port : %d\n", ntohs(TCP-> dport));
-            printf("TCP len : %d\n", TCP->th_off*4);
+            printf("TCP Header len : %d\n", TH_OFF(TCP)*4);
 
-            size_payload = ntohs(IH-> TotalLength*4) - ((IH->HeaderLength*4)+(TCP-> th_off*4));
+            payload = (u_char *)(packet + 14 + (IH->HeaderLength *4) + (TH_OFF(TCP)*4));
+            size_payload = ntohs(IH-> TotalLength) - ((IH->HeaderLength *4)+TH_OFF(TCP)*4);
 
-            printf("%d\n", ntohs(IH-> TotalLength*4));
+            printf("\nTotalLength : %d\n", ntohs(IH-> TotalLength));
             printf("Payload : %d\n", size_payload);
+
+            const u_char *ch = payload;
+
+            if(size_payload >0) {
+                printf("\npayload hexz Value\n");
+                for(int j=0; j<size_payload; j++){
+                    printf("%02x ", *ch);
+                    if(j%16 == 15) printf("\n");
+                    ch++;
+                }
+                printf("\n");
+            }
 
 
 
